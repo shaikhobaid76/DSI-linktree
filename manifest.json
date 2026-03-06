@@ -1,0 +1,21 @@
+{
+  "name": "DESIGN SPACE INTERIOX",
+  "short_name": "Interiox",
+  "description": "Premium link hub for DESIGN SPACE INTERIOX",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf0e1",
+  "theme_color": "#8b6f50",
+  "icons": [
+    {
+      "src": "images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
