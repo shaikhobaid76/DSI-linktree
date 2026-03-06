@@ -1,7 +1,8 @@
-const CACHE_NAME = 'interiox-v1';
+const CACHE_NAME = 'interiox-v2';
+
 const urlsToCache = [
   '/',
-  '/index.html',        // ya jo bhi aapka HTML file name hai
+  '/index.html',
   '/images/logo.png',
   '/images/bg7.png',
   '/images/favicon.ico',
@@ -9,32 +10,44 @@ const urlsToCache = [
   'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&family=Playfair+Display:wght@700&family=Poppins:wght@500;600&display=swap'
 ];
 
-// Install event – cache karo saare resources
+// install
 self.addEventListener('install', event => {
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(cache => {
+        return cache.addAll(urlsToCache);
+      })
   );
 });
 
-// Fetch event – cache se response do, agar nahi mile to network se
+// activate
+self.addEventListener('activate', event => {
+  self.clients.claim();
+
+  event.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+});
+
+// fetch
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
-      .then(response => response || fetch(event.request))
-  );
-});
-
-// Activate event – old cache clean karo
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(keyList =>
-      Promise.all(keyList.map(key => {
-        if (!cacheWhitelist.includes(key)) {
-          return caches.delete(key);
+      .then(response => {
+        if (response) {
+          return response;
         }
-      }))
-    )
+        return fetch(event.request);
+      })
   );
 });
