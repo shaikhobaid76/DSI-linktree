@@ -1,6 +1,6 @@
-const CACHE_NAME = 'interiox-v2';
+const CACHE_NAME = 'interiox-cache';
 
-const urlsToCache = [
+const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/images/logo.png',
@@ -10,22 +10,19 @@ const urlsToCache = [
   'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&family=Playfair+Display:wght@700&family=Poppins:wght@500;600&display=swap'
 ];
 
-// install
+// INSTALL
 self.addEventListener('install', event => {
   self.skipWaiting();
-  
+
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(STATIC_ASSETS);
+    })
   );
 });
 
-// activate
+// ACTIVATE
 self.addEventListener('activate', event => {
-  self.clients.claim();
-
   event.waitUntil(
     caches.keys().then(keys => {
       return Promise.all(
@@ -37,17 +34,33 @@ self.addEventListener('activate', event => {
       );
     })
   );
+
+  return self.clients.claim();
 });
 
-// fetch
+// FETCH (AUTO UPDATE)
 self.addEventListener('fetch', event => {
+
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
+
+    fetch(event.request)
+      .then(networkResponse => {
+
+        return caches.open(CACHE_NAME).then(cache => {
+
+          cache.put(event.request, networkResponse.clone());
+
+          return networkResponse;
+
+        });
+
       })
+      .catch(() => {
+
+        return caches.match(event.request);
+
+      })
+
   );
+
 });
